@@ -13,6 +13,7 @@ from flexs.utils.sequence_utils import (
     one_hot_to_string,
     string_to_one_hot,
 )
+from utils.seq_utils import random_sample_within_discrete_tr_ordinal, check_cdr_constraints_all
 
 @register_algorithm("botorch")
 
@@ -59,11 +60,13 @@ class BO(flexs.Explorer):
         self.recomb_rate = 0.2
         self.best_fitness = 0
         self.num_actions = 0
-        self.data_range=args.datasetrange
+        self.data_range=args.datasetrange#
+        self.AA = 'ACDEFGHIKLMNPQRSTVWY' # can be changed later
         self.state = None
-        self.seq_len = None
+        self.seq_len = 17 # can be changed later
         self.memory = None
         self.initial_uncertainty = None
+        self.n_categories = np.array([self.AA] * self.seq_len)
 
     def initialize_data_structures(self):
         """Initialize."""
@@ -160,7 +163,8 @@ class BO(flexs.Explorer):
                 x[action] = 1
             actions_to_screen.append(x)
             state_to_screen = construct_mutant_from_sample(x, state)
-            states_to_screen.append(one_hot_to_string(state_to_screen, self.alphabet))
+            seq = one_hot_to_string(state_to_screen, self.alphabet)
+            states_to_screen.append(random_sample_within_discrete_tr_ordinal(seq, len(self.AA), self.n_categories))
             
         ensemble_preds = self.model.get_fitness(states_to_screen)
         mean_pred=np.mean(ensemble_preds)
