@@ -2,8 +2,13 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from sklearn.preprocessing import MultiLabelBinarizer
+import random
+from copy import deepcopy
+from itertools import groupby
+import re
 
-def hamming_distance(seq_1, seq_2):
+def hamming_distance(seq_1, seq_2, config=None): #config: list, e.g. [2, 3, 4, 5] -- denotes there are 4 categorical variables, with numbers of categories
+                                                 # being 2, 3, 4, and 5 respectively.
     return sum([x!=y for x, y in zip(seq_1, seq_2)])
 
 def convert_str(data, name):
@@ -133,3 +138,56 @@ def sequences_to_mutation_sets(sequences, alphabet, wt_sequence, context_radius)
     mutation_sets = torch.tensor(np.array(mutation_set_List)).permute([0, 1, 3, 2]).float()
     mutation_sets_mask = torch.tensor(np.array(mutation_set_mask_List)).float()
     return mutation_sets, mutation_sets_mask
+
+
+def random_sample_within_discrete_tr_ordinal(x_center, max_hamming_dist, n_categories):
+    """Same as above, but here we assume a ordinal representation of the categorical variables."""
+    # random.seed(random.randint(0, 1e6))
+    if max_hamming_dist < 1:
+        bit_change = int(max(max_hamming_dist * len(n_categories), 1))
+    else:
+        bit_change = int(min(max_hamming_dist, len(n_categories)))
+    x_pert = deepcopy(x_center)
+    modified_bits = random.sample(range(len(n_categories)), bit_change)
+    for bit in modified_bits:
+        options = np.arange(n_categories[bit])
+        x_pert[bit] = int(random.choice(options))
+    return x_pert
+
+def check_cdr_constraints_all(x, x_center_local=None, hamming=None, config=None):
+    COUNT_AA = 5
+    AA = 'ACDEFGHIKLMNPQRSTVWY'
+    AA_to_idx = {aa: i for i, aa in enumerate(AA)}
+    idx_to_AA = {value: key for key, value in AA_to_idx.items()}
+    N_glycosylation_pattern = 'N[^P][ST][^P]'
+    # Constraints on CDR3 sequence
+    x_to_seq = ''.join(idx_to_AA[int(aa)] for aa in x)
+    
+    # prot = ProteinAnalysis(x_to_seq)
+    # charge = prot.charge_at_pH(7.4)
+    # Counting number of consecutive keys
+    count = max([sum(1 for _ in group) for _, group in groupby(x_to_seq)])
+    if count > 5:
+        c1 = False
+    else:
+        c1 = True
+    charge = 0
+    for char in x_to_seq:
+        charge += int(char == 'R' or char == 'K') + 0.1 * int(char == 'H') - int(char == 'D' or char == 'E')
+    if (charge > 2.0 or charge < -2.0):
+        c2 = False
+    else:
+        c2 = True
+    if re.search(N_glycosylation_pattern, x_to_seq):
+        c3 = False
+    else:
+        c3 = True
+
+    if x_center_local is not None:
+        # 1 if met (True)
+        c4 = hamming_distance(x_center_local, x, config) <= hamming
+        # Return 0 if True
+        return int(not (c1)), int(not (c2)), int(not (c3)), int(not (c4))
+
+    return int(not (c1)), int(not (c2)), int(not (c3))
+
