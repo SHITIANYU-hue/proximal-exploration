@@ -24,6 +24,7 @@ git clone https://github.com/HeliXonProtein/proximal-exploration.git
 cd proximal-exploration
 bash download_landscape.sh
 ```
+install: https://github.com/samsinai/FLEXS/
 
 ## Usage
 

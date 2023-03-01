@@ -4,10 +4,10 @@ from . import register_algorithm
 from utils.seq_utils import hamming_distance, random_mutation
 from utils.seq_utils import levenshteinDistance, convert_str,levenshteinDistance_
 
-@register_algorithm("pex")
+@register_algorithm("pexcons")
 class ProximalExploration:
     """
-        Proximal Exploration (PEX)
+        Proximal Exploration (PEX) with steps constraint
     """
     
     def __init__(self, args, model, alphabet, starting_sequence):
@@ -20,24 +20,26 @@ class ProximalExploration:
         self.num_random_mutations = args.num_random_mutations
         self.frontier_neighbor_size = args.frontier_neighbor_size
         self.dataset_range=args.datasetrange
+        self.cutom_data=args.custom_data_name
     
-    def propose_sequences(self, measured_sequences, score_max):
+    def propose_sequences(self, measured_sequences,round_min_seq):
         # Input:  - measured_sequences: pandas.DataFrame
         #           - 'sequence':       [sequence_length]
         #           - 'true_score':     float
         # Output: - query_batch:        [num_queries, sequence_length]
         #         - model_scores:       [num_queries]
-        query_batch = self._propose_sequences(measured_sequences)
+
+        query_batch = self._propose_sequences(measured_sequences,round_min_seq)
         model_scores = np.concatenate([
             self.model.get_fitness(query_batch[i:i+self.batch_size])
             for i in range(0, len(query_batch), self.batch_size)
         ])
         return query_batch, model_scores
 
-    def _propose_sequences(self, measured_sequences):
+    def _propose_sequences(self, measured_sequences,round_min_seq):
         measured_sequence_set = set(measured_sequences['sequence'])
         # Generate random mutations in the first round.
-        names=np.load('/home/tianyu/code/biodrug/unify-length/names.npy')
+        names=np.load(f'/home/tianyu/code/biodrug/unify-length/names_{self.cutom_data}.npy')
 
         if len(measured_sequence_set)==1:
             query_batch = []
@@ -52,13 +54,12 @@ class ProximalExploration:
         measured_sequence_dict = {}
         for _, data in measured_sequences.iterrows():
             # distance_to_wt = hamming_distance(data['sequence'], self.wt_sequence)
-            print(data['sequence'])
-            distance_to_wt = levenshteinDistance(data['sequence'],self.wt_sequence,names)
-
+            distance_to_wt = levenshteinDistance(data['sequence'],round_min_seq,names)
+            # distance_to_wt2 = levenshteinDistance(data['sequence'],self.wt_sequence,names)
             if distance_to_wt not in measured_sequence_dict.keys():
                 measured_sequence_dict[distance_to_wt] = []
             measured_sequence_dict[distance_to_wt].append(data)
-        
+                    
         # Highlight measured sequences near the proximal frontier.
         frontier_neighbors, frontier_height = [], -np.inf
         for distance_to_wt in sorted(measured_sequence_dict.keys()):
@@ -77,6 +78,7 @@ class ProximalExploration:
             if candidate_sequence not in measured_sequence_set:
                 candidate_pool.append(candidate_sequence)
                 measured_sequence_set.add(candidate_sequence)
+
         # Arrange the candidate pool by the distance to the wild type.
         candidate_pool_dict = {}
         for i in range(0, len(candidate_pool), self.batch_size):
@@ -84,7 +86,7 @@ class ProximalExploration:
             model_scores = self.model.get_fitness(candidate_batch) ## get model scores for all the batch of data
             for candidate, model_score in zip(candidate_batch, model_scores):
                 # distance_to_wt = hamming_distance(candidate, self.wt_sequence)
-                distance_to_wt = levenshteinDistance(candidate,self.wt_sequence,names)
+                distance_to_wt = levenshteinDistance(candidate,round_min_seq,names)
 
                 if distance_to_wt not in candidate_pool_dict.keys():
                     candidate_pool_dict[distance_to_wt] = []

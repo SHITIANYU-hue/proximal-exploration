@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from . import torch_model, register_model
+import gpytorch
 
 class CNN(nn.Module):
     """
@@ -21,6 +22,8 @@ class CNN(nn.Module):
         self.dense_2 = nn.Linear(hidden_dim, hidden_dim)
         self.dropout_1 = nn.Dropout(0.25)
         self.dense_3 = nn.Linear(hidden_dim, 1)
+        self.mean_module = gpytorch.means.ConstantMean()
+        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
 
     def forward(self, x):
         # Input:  [batch_size, num_input_channels, sequence_length]
@@ -34,6 +37,12 @@ class CNN(nn.Module):
         x = torch.relu(self.dense_2(x))
         x = self.dropout_1(x)
         x = self.dense_3(x)
+        # mean_x = self.mean_module(x)
+        # mean_x= torch.unsqueeze(mean_x,dim=-1)
+        # covar_x = self.covar_module(x)
+        # x=gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+        # print('cov x',covar_x.numpy())
+        # print('x',x.size(),mean_x.size())
         return x
 
 @register_model("cnn")

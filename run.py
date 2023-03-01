@@ -5,6 +5,7 @@ from model import get_model, model_collection
 from model.ensemble import ensemble_rules
 from utils.os_utils import get_arg_parser
 from utils.eval_utils import Runner
+import flexs
 
 def get_args():
     parser = get_arg_parser()
@@ -27,7 +28,7 @@ def get_args():
     parser.add_argument('--num_model_queries_per_round', help='number of model predictions per round', type=np.int32, default=2000)
     
     # model arguments
-    parser.add_argument('--net', help='surrogate model architecture', type=str, default='mufacnet', choices=model_collection.keys())
+    parser.add_argument('--net', help='surrogate model architecture', type=str, default='esm1b', choices=model_collection.keys())
     parser.add_argument('--lr', help='learning rate', type=np.float32, default=1e-3)
     parser.add_argument('--batch_size', help='batch size', type=np.int32, default=256)
     parser.add_argument('--patience', help='number of epochs without improvement to wait before terminating training', type=np.int32, default=10)
@@ -55,6 +56,5 @@ if __name__=='__main__':
     landscape, alphabet, starting_sequence = get_landscape(args)
     model = get_model(args, alphabet=alphabet, starting_sequence=starting_sequence)
     explorer = get_algorithm(args, model=model, alphabet=alphabet, starting_sequence=starting_sequence)
-
     runner = Runner(args)
     runner.run(landscape, starting_sequence, model, explorer, args.name, args.seed, args.out_dir)

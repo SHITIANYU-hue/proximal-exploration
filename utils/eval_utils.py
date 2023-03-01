@@ -23,6 +23,8 @@ class Runner:
     def __init__(self, args):
         self.num_rounds = args.num_rounds
         self.num_queries_per_round = args.num_queries_per_round
+        self.alg=args.alg
+        self.cutom_data=args.custom_data_name
 
     def run(self, landscape, starting_sequence, model, explorer, name, runs, out_dir):
         self.results = pd.DataFrame()
@@ -52,6 +54,7 @@ class Runner:
                 loss_.append(loss)
             sequences, model_scores = explorer.propose_sequences(self.results,score_max)
             assert len(sequences) <= self.num_queries_per_round
+
             true_scores = landscape.get_fitness(sequences)
             # if model_scores[0] and true_scores[0]:
             #     rmse = np.sqrt(np.mean(np.square(np.array(model_scores) - np.array(true_scores))))
