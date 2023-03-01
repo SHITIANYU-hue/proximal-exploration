@@ -53,6 +53,7 @@ class TorchModel:
                 num_no_improvement = 0
             else:
                 num_no_improvement += 1
+        return best_loss
     
     def get_fitness(self, sequences):
         # Input:  - sequences:   [batch_size, sequence_length]

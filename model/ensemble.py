@@ -20,3 +20,11 @@ class Ensemble:
         # Output: - predictions: [batch_size]
         
         return self.ensemble_func([model.get_fitness(sequences) for model in self.models])
+    
+    def get_uncertainty(self,sequences):
+        fitness=[]
+        for model in self.models:
+            fitness.append(model.get_fitness(sequences))
+        fitness_std=np.std(fitness,axis=0)
+
+        return fitness_std

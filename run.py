@@ -9,15 +9,20 @@ from utils.eval_utils import Runner
 def get_args():
     parser = get_arg_parser()
     
-    parser.add_argument('--device', help='device', type=str, default='cuda')
+    parser.add_argument("--name", help="experiment name", type=str, default="pex")
+    parser.add_argument("--seed", help="random seed", type=int, default=1)
+    parser.add_argument(
+        "--out_dir", help="Output directory", type=str, dest="out_dir", default="./exp_result"
+    )
+    parser.add_argument('--device', help='device', type=str, default='cpu')
     
     # landscape arguments
-    parser.add_argument('--task', help='fitness landscape', type=str, default='avGFP', choices=task_collection.keys())
+    parser.add_argument('--task', help='fitness landscape', type=str, default='AAV', choices=task_collection.keys())
     parser.add_argument('--oracle_model', help='oracle model of fitness landscape', type=str, default='tape', choices=landscape_collection.keys())
 
     # algorithm arguments
     parser.add_argument('--alg', help='exploration algorithm', type=str, default='pex', choices=algorithm_collection.keys())
-    parser.add_argument('--num_rounds', help='number of query rounds', type=np.int32, default=10)
+    parser.add_argument('--num_rounds', help='number of query rounds', type=np.int32, default=30)
     parser.add_argument('--num_queries_per_round', help='number of black-box queries per round', type=np.int32, default=100)
     parser.add_argument('--num_model_queries_per_round', help='number of model predictions per round', type=np.int32, default=2000)
     
@@ -32,9 +37,8 @@ def get_args():
     args, _ = parser.parse_known_args()
     
     # PEX arguments
-    if args.alg == 'pex':
-        parser.add_argument('--num_random_mutations', help='number of amino acids to mutate per sequence', type=np.int32, default=2)
-        parser.add_argument('--frontier_neighbor_size', help='size of the frontier neighbor', type=np.int32, default=5)
+    parser.add_argument('--num_random_mutations', help='number of amino acids to mutate per sequence', type=np.int32, default=2)
+    parser.add_argument('--frontier_neighbor_size', help='size of the frontier neighbor', type=np.int32, default=5)
     
     # MuFacNet arguments
     if args.net == 'mufacnet':
@@ -46,10 +50,11 @@ def get_args():
 
 if __name__=='__main__':
     args = get_args()
-    
+    print("explorer algorithm is:", args.alg)
+
     landscape, alphabet, starting_sequence = get_landscape(args)
     model = get_model(args, alphabet=alphabet, starting_sequence=starting_sequence)
     explorer = get_algorithm(args, model=model, alphabet=alphabet, starting_sequence=starting_sequence)
 
     runner = Runner(args)
-    runner.run(landscape, starting_sequence, model, explorer)
+    runner.run(landscape, starting_sequence, model, explorer, args.name, args.seed, args.out_dir)

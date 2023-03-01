@@ -1,15 +1,20 @@
 import random
 import numpy as np
+from scipy.stats import norm
+
 from . import register_algorithm
 from utils.seq_utils import hamming_distance, random_mutation
 
-@register_algorithm("pex")
-class ProximalExploration:
+@register_algorithm("batchbo")
+class ProximalExploration: 
     """
-        Proximal Exploration (PEX)
+        batchbo
     """
     
     def __init__(self, args, model, alphabet, starting_sequence):
+        method = "UCB"
+        name = f"BO_method={method}"
+        self.method = method
         self.model = model
         self.alphabet = alphabet
         self.wt_sequence = starting_sequence
@@ -26,14 +31,82 @@ class ProximalExploration:
         # Output: - query_batch:        [num_queries, sequence_length]
         #         - model_scores:       [num_queries]
         
-        query_batch = self._propose_sequences(measured_sequences)
+        query_batch = self._propose_sequences(measured_sequences,score_max)
         model_scores = np.concatenate([
             self.model.get_fitness(query_batch[i:i+self.batch_size])
             for i in range(0, len(query_batch), self.batch_size)
         ])
         return query_batch, model_scores
 
-    def _propose_sequences(self, measured_sequences):
+
+    def pick_action(self, candidate_pool,score_max):
+        """Pick action."""
+        states_to_screen = []
+        states_to_screen = []
+        method_pred = []
+        # local search for all satisfied seq candidate pool
+        # not enough do global search
+        states_to_screen = candidate_pool
+        ensemble_preds = self.model.get_fitness(states_to_screen) 
+        uncertainty_pred=self.model.get_uncertainty(states_to_screen)
+        max_pred = max(ensemble_preds)
+        mean_pred = np.mean(self.model.get_fitness(candidate_pool))
+        std_pre = np.std(self.model.get_fitness(candidate_pool))
+        best_fitness_obs = score_max ## this is the best fitness observed from last round
+        best_fitness = best_fitness_obs
+        if self.method == "EI":
+            method_pred = self.EI(ensemble_preds,uncertainty_pred,best_fitness)##https://machinelearningmastery.com/what-is-bayesian-optimization/ 
+        if self.method == "KG":
+            for i in range(len(ensemble_preds)):
+                kg = self.calculate_knowledge_gradient(ensemble_preds[i], uncertainty_pred[i], best_fitness, num_fantasies=128)
+                method_pred.append(kg)
+        if self.method == "UCB":
+            method_pred = self.UCB(ensemble_preds, uncertainty_pred)
+        action_ind = np.argpartition(method_pred, -self.num_queries_per_round)[-self.num_queries_per_round:]
+        action_ind = action_ind.tolist()
+        new_state_string = np.asarray(states_to_screen)[action_ind]
+        # self.state = string_to_one_hot(new_state_string, self.alphabet)
+        # new_state = self.state
+        reward = np.mean(ensemble_preds[action_ind])
+        # if new_state_string not in all_measured_seqs:
+        #     self.best_fitness = max(self.best_fitness, reward)
+        #     self.memory.store(state.ravel(), action, reward, new_state.ravel())
+        return  new_state_string, reward
+
+
+
+    @staticmethod
+    def EI(mu, std, best):
+        """Compute expected improvement."""
+        # print('vals',vals)
+        # return np.mean([max(val - self.best_fitness, 0) for val in vals])
+        return norm.cdf((mu - best) / (std+1E-9))
+
+    @staticmethod
+    def calculate_knowledge_gradient(mean, std, current_best, num_fantasies):
+        # Sample fantasized functions
+        f = np.random.normal(mean, std, size=(num_fantasies,1))
+        f_best = np.max(f, axis=1)
+        
+        # Compute mean and std of maximum value from fantasized functions
+        f_best_mean = np.mean(f_best)
+        f_best_std = np.std(f_best, ddof=1)
+        
+        # Compute knowledge gradient
+        kg = (f_best_mean - current_best) * norm.cdf((f_best_mean - current_best) / f_best_std) + \
+            f_best_std * norm.pdf((f_best_mean - current_best) / f_best_std)
+        
+        return kg
+
+
+    @staticmethod
+    def UCB(vals,std_pre):
+        """Upper confidence bound."""
+        discount = 0.5
+        return vals + discount * std_pre
+
+
+    def _propose_sequences(self, measured_sequences,score_max):
         measured_sequence_set = set(measured_sequences['sequence'])
         
         # Generate random mutations in the first round.
@@ -72,42 +145,11 @@ class ProximalExploration:
             if candidate_sequence not in measured_sequence_set:
                 candidate_pool.append(candidate_sequence)
                 measured_sequence_set.add(candidate_sequence)
-        
-        # Arrange the candidate pool by the distance to the wild type.
-        candidate_pool_dict = {}
-        for i in range(0, len(candidate_pool), self.batch_size):
-            candidate_batch =  candidate_pool[i:i+self.batch_size]
-            model_scores = self.model.get_fitness(candidate_batch)
-            for candidate, model_score in zip(candidate_batch, model_scores):
-                distance_to_wt = hamming_distance(candidate, self.wt_sequence)
-                if distance_to_wt not in candidate_pool_dict.keys():
-                    candidate_pool_dict[distance_to_wt] = []
-                candidate_pool_dict[distance_to_wt].append(dict(sequence=candidate, model_score=model_score))
-        for distance_to_wt in sorted(candidate_pool_dict.keys()):
-            candidate_pool_dict[distance_to_wt].sort(reverse=True, key=lambda x:x['model_score'])
-        
-        # Construct the query batch by iteratively extracting the proximal frontier. 
-        query_batch = []
-        while len(query_batch) < self.num_queries_per_round:
-            # Compute the proximal frontier by Andrew's monotone chain convex hull algorithm. (line 5 of Algorithm 2 in the paper)
-            # https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
-            stack = []
-            for distance_to_wt in sorted(candidate_pool_dict.keys()):
-                if len(candidate_pool_dict[distance_to_wt])>0:
-                    data = candidate_pool_dict[distance_to_wt][0]
-                    new_point = np.array([distance_to_wt, data['model_score']])
-                    def check_convex_hull(point_1, point_2, point_3):
-                        return np.cross(point_2-point_1, point_3-point_1) <= 0
-                    while len(stack)>1 and not check_convex_hull(stack[-2], stack[-1], new_point):
-                        stack.pop(-1)
-                    stack.append(new_point)
-            while len(stack)>=2 and stack[-1][1] < stack[-2][1]:
-                stack.pop(-1)
-            
-            # Update query batch and candidate pool. (line 6 of Algorithm 2 in the paper)
-            for distance_to_wt, model_score in stack:
-                if len(query_batch) < self.num_queries_per_round:
-                    query_batch.append(candidate_pool_dict[distance_to_wt][0]['sequence'])
-                    candidate_pool_dict[distance_to_wt].pop(0)
+    
 
-        return query_batch
+
+        new_state_string, _ = self.pick_action(
+            candidate_pool, score_max
+        ) 
+
+        return new_state_string

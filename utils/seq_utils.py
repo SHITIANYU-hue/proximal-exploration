@@ -1,6 +1,8 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
+from functools import cache
+from Levenshtein import distance
 
 def hamming_distance(seq_1, seq_2):
     return sum([x!=y for x, y in zip(seq_1, seq_2)])
@@ -13,6 +15,34 @@ def random_mutation(sequence, alphabet, num_mutations):
     new_seq = ''.join(wt_seq)
     return new_seq
 
+@cache
+def levenshtein_distance(s1, s2):
+    return distance(s1, s2)
+
+
+def levenshteinDistance(s1_, s2_, name):
+    id1 = int(s1_, 2)
+    id2 = int(s2_, 2)
+    if id1 >= len(name) or id2 >= len(name):
+        return 5
+    else:
+        s1 = name[id1]
+        s2 = name[id2]
+
+        if len(s1) > len(s2):
+            s1, s2 = s2, s1
+
+        distances = range(len(s1) + 1)
+        for i2, c2 in enumerate(s2):
+            distances_ = [i2 + 1]
+            for i1, c1 in enumerate(s1):
+                if c1 == c2:
+                    distances_.append(distances[i1])
+                else:
+                    distances_.append(1 + min((distances[i1], distances[i1 + 1], distances_[-1])))
+            distances = distances_
+        return distances[-1]
+    
 def sequence_to_one_hot(sequence, alphabet):
     # Input:  - sequence: [sequence_length]
     #         - alphabet: [alphabet_size]
