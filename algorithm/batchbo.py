@@ -52,6 +52,7 @@ class ProximalExploration:
         max_pred = max(ensemble_preds)
         mean_pred = np.mean(self.model.get_fitness(candidate_pool))
         std_pre = np.std(self.model.get_fitness(candidate_pool))
+        risk=np.mean(std_pre)
         best_fitness_obs = score_max ## this is the best fitness observed from last round
         best_fitness = best_fitness_obs
         if self.method == "EI":
@@ -60,8 +61,10 @@ class ProximalExploration:
             for i in range(len(ensemble_preds)):
                 kg = self.calculate_knowledge_gradient(ensemble_preds[i], uncertainty_pred[i], best_fitness, num_fantasies=128)
                 method_pred.append(kg)
+        if self.method == "UCB_risk":
+            method_pred = self.UCB_risk(ensemble_preds, uncertainty_pred,risk)
         if self.method == "UCB":
-            method_pred = self.UCB(ensemble_preds, uncertainty_pred)
+            method_pred = self.UCB(ensemble_preds, uncertainty_pred)            
         action_ind = np.argpartition(method_pred, -self.num_queries_per_round)[-self.num_queries_per_round:]
         action_ind = action_ind.tolist()
         new_state_string = np.asarray(states_to_screen)[action_ind]
@@ -83,6 +86,19 @@ class ProximalExploration:
         return norm.cdf((mu - best) / (std+1E-9))
 
     @staticmethod
+    def UCB_risk(vals,std_pre, risk):
+        """Upper confidence bound."""
+        discount = 0.5
+        return vals + discount * std_pre / (0.5+risk)
+
+    @staticmethod
+    def UCB(vals,std_pre):
+        """Upper confidence bound."""
+        discount = 0.5
+        return vals + discount * std_pre 
+
+        
+    @staticmethod
     def calculate_knowledge_gradient(mean, std, current_best, num_fantasies):
         # Sample fantasized functions
         f = np.random.normal(mean, std, size=(num_fantasies,1))
@@ -99,11 +115,6 @@ class ProximalExploration:
         return kg
 
 
-    @staticmethod
-    def UCB(vals,std_pre):
-        """Upper confidence bound."""
-        discount = 0.5
-        return vals + discount * std_pre
 
 
     def _propose_sequences(self, measured_sequences,score_max):
