@@ -10,7 +10,7 @@ from flexs.utils import sequence_utils as s_utils
 
 
 @register_algorithm("genetic")
-class GeneticAlgorithm(flexs.Explorer):
+class GeneticAlgorithm(flexs.Explorer): ## if inherit it, it can improve score
     """A genetic algorithm explorer with single point mutations and recombination.
 
     Based on the `parent_selection_strategy`, this class implements one of three
@@ -26,24 +26,8 @@ class GeneticAlgorithm(flexs.Explorer):
            exponential to their fitness (softmax the scores then sample).
     """
 
-    def __init__(
-        self,
-        args,
-        model: flexs.Model,
-        # rounds: int,
-        alphabet:str,
-        starting_sequence: str,
-        # sequences_batch_size: int,
-        # model_queries_per_batch: int,
-        # alphabet: str,
-        # population_size: int,
-        # parent_selection_strategy: str,
-        # children_proportion: float,
-        # log_file: Optional[str] = None,
-        # parent_selection_proportion: Optional[float] = None,
-        # beta: Optional[float] = None,
-        # seed: Optional[int] = None,
-    ):
+    def __init__(self, args, model, alphabet, starting_sequence):
+
         """Create genetic algorithm."""
         parent_selection_strategy='top-proportion'
         population_size=20
@@ -54,15 +38,6 @@ class GeneticAlgorithm(flexs.Explorer):
         )
         beta=0.01
 
-        # super().__init__(
-        #     model,
-        #     name,
-        #     rounds,
-        #     sequences_batch_size,
-        #     model_queries_per_batch,
-        #     starting_sequence,
-        #     log_file,
-        # )
         self.model_queries_per_batch=args.num_model_queries_per_round
         self.sequences_batch_size=args.num_queries_per_round
         self.alphabet = alphabet
@@ -105,9 +80,7 @@ class GeneticAlgorithm(flexs.Explorer):
         probs = torch.Tensor(fitnesses / np.sum(fitnesses))
         return torch.multinomial(probs, num_parents, replacement=True).numpy()
 
-    def propose_sequences(
-        self, measured_sequences: pd.DataFrame
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def propose_sequences(self, measured_sequences, score_max):
         """Propose top `sequences_batch_size` sequences for evaluation."""
         # Set the torch seed by generating a random integer from the pre-seeded self.rng
         torch.manual_seed(self.rng.integers(-(2**31), 2**31))
@@ -123,14 +96,15 @@ class GeneticAlgorithm(flexs.Explorer):
         scores = measured_sequences["true_score"].to_numpy()[initial_pop_inds]
 
         sequences = {}
-        initial_cost = self.model.cost
+        count=0
         while (
-            self.model.cost - initial_cost + self.population_size
+            count + self.population_size
             < self.model_queries_per_batch
         ):
             # Create "children" by recombining parents selected from population
             # according to self.parent_selection_strategy and
             # self.recombination_strategy
+            count+=1
             num_children = int(self.children_proportion * self.population_size)
             parents = pop[self._choose_parents(scores, num_children)]
 
