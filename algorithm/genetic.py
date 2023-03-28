@@ -10,7 +10,7 @@ from flexs.utils import sequence_utils as s_utils
 
 
 @register_algorithm("genetic")
-class GeneticAlgorithm(flexs.Explorer): ## if inherit it, it can improve score
+class GeneticAlgorithm(): ## if inherit it, it can improve score
     """A genetic algorithm explorer with single point mutations and recombination.
 
     Based on the `parent_selection_strategy`, this class implements one of three

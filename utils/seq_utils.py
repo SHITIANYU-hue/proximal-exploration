@@ -78,12 +78,8 @@ def dec2bin(num,length=16):
     
     return ''.join(l[::-1])
 
-def random_mutation(sequence, alphabet, num_mutations,range):
 
-    idx=np.random.randint(range)
-    return dec2bin(idx)
-
-def random_mutation_(sequence, alphabet, num_mutations): ##origional mutation function
+def random_mutation(sequence, alphabet, num_mutations):
     wt_seq = list(sequence)
     for _ in range(num_mutations):
         idx = np.random.randint(len(sequence))

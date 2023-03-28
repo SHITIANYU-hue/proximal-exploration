@@ -71,7 +71,7 @@ class MutationFactorizationModel(torch_model.TorchModel):
         
         self.wt_sequence = starting_sequence
         self.context_radius = args.context_radius
-        # self.loss_func = gpytorch.mlls.ExactMarginalLogLikelihood(self.net.likelihood, self.net)
+        self.loss_func = gpytorch.mlls.ExactMarginalLogLikelihood(self.net.likelihood, self.net)
         
     def get_data_loader(self, sequences, labels):
         # Input:  - sequences:    [dataset_size, sequence_length]
@@ -90,7 +90,7 @@ class MutationFactorizationModel(torch_model.TorchModel):
     
     
 
-    def compute_loss(self, data,starting_fitness):
+    def compute_loss(self, data):
         # Input:  - mutation_sets:      [batch_size, max_mutation_num, alphabet_size, context_width]
         #         - mutation_sets_mask: [batch_size, max_mutation_num]
         #         - labels:             [batch_size]
@@ -100,9 +100,7 @@ class MutationFactorizationModel(torch_model.TorchModel):
        
         self.net.eval()
         outputs = self.net(mutation_sets.to(self.device), mutation_sets_mask.to(self.device))
-        labels=labels.to(self.device)-starting_fitness
-        # print('labels',labels.to(self.device)-starting_fitness)
-        loss = self.loss_func(outputs, labels.to(self.device))
+        loss = -self.loss_func(outputs, labels.to(self.device))
         return loss
     
 

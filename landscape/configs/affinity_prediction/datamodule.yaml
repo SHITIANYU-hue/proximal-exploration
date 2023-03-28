@@ -1,0 +1,8 @@
+train_data_loc: "/nfs_baoding/share/yuxiang/public_data/simulation_platform/phage_display_predicted_dg.csv"
+test_data_loc: "/nfs_baoding/share/yuxiang/public_data/simulation_platform/phage_display_predicted_dg_holdout.csv"
+pred_data_loc: "/nfs_baoding/share/yuxiang/public_data/simulation_platform/phage_display_predicted_dg_holdout.csv"
+num_workers: 4
+index_col: "vh_cdr3"
+feature_col: "vh_cdr3"
+label_col: "predicted_dg"
+batch_size: 1024

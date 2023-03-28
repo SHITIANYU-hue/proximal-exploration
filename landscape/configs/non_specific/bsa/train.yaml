@@ -1,0 +1,18 @@
+train: True
+test: True
+predict: True
+accelerator: "gpu"
+devices: 1
+strategy: "ddp"
+ckpt_for_predict: 
+output_dir: 
+max_epochs: 800
+check_val_every_n_epoch: 1
+seed: 42
+name: bsa # name of this training task
+
+# config about saving model ckpt
+dirpath: 
+mode: "max"
+monitor: "val/BinaryAUROC"
+save_top_k: 1

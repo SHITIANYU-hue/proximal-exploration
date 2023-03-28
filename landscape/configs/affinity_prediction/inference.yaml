@@ -1,0 +1,10 @@
+train: False
+test: False
+predict: True
+accelerator: "cpu"
+devices: 1
+strategy: "ddp"
+batch_size: 1024
+num_workers: 4
+module_name: "EnsembleRegressionModel"
+ckpt_for_predict: /home/changquan/code/proximal-exploration-active-learning/oracle/epoch=1200_coe=0.55.ckpt

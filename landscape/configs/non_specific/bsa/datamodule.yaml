@@ -1,0 +1,9 @@
+train_data_loc: "/nfs_baoding/share/yuxiang/public_data/counter_selection_paper_data/bsa_train_cls.csv"
+test_data_loc: "/nfs_baoding/share/yuxiang/public_data/counter_selection_paper_data/bsa_test_cls.csv"
+pred_data_loc: "/nfs_baoding/share/yuxiang/public_data/counter_selection_paper_data/bsa_test_cls.csv"
+num_workers: 4
+index_col: "cdr3"
+feature_col: "cdr3"
+label_col: "label"
+batch_size: 1024
+train_valid_rate: 1

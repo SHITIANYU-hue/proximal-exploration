@@ -1,0 +1,4 @@
+module_name: "EnsembleBinaryClassificationModel"
+tgfb: "/nfs_baoding/share/yuxiang/checkpoints/non_specific_oracle_auc_230301/tgfb/checkpoints/epoch017.ckpt"
+bv: "/nfs_baoding/share/yuxiang/checkpoints/non_specific_oracle_auc_230301/bv/checkpoints/epoch099.ckpt"
+bsa: "/nfs_baoding/share/yuxiang/checkpoints/non_specific_oracle_auc_230301/bsa/checkpoints/epoch099.ckpt"

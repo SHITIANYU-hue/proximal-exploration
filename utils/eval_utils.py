@@ -24,7 +24,6 @@ class Runner:
         self.num_rounds = args.num_rounds
         self.num_queries_per_round = args.num_queries_per_round
         self.alg=args.alg
-        self.cutom_data=args.custom_data_name
 
     def run(self, landscape, starting_sequence, model, explorer, name, runs, out_dir):
         self.results = pd.DataFrame()
@@ -51,6 +50,7 @@ class Runner:
             round_start_time = time.time()
             if len(self.sequence_buffer) > 1:
                 loss=model.train(self.sequence_buffer, self.fitness_buffer)
+                print('loss',loss)
                 loss_.append(loss)
             sequences, model_scores = explorer.propose_sequences(self.results,score_max)
             assert len(sequences) <= self.num_queries_per_round

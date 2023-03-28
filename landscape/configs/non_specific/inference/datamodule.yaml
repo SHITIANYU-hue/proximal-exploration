@@ -1,0 +1,8 @@
+train_data_loc: "/home/yuxiang/lyx_projects/ActiveLearning/counterselection/data/TableS1.csv"
+test_data_loc: "/home/yuxiang/lyx_projects/ActiveLearning/counterselection/data/TableS1.csv"
+pred_data_loc: "/home/yuxiang/lyx_projects/ActiveLearning/counterselection/data/TableS1.csv"
+num_workers: 4
+index_col: "Sequence"
+feature_col: "Sequence"
+label_col: "label"
+batch_size: 100

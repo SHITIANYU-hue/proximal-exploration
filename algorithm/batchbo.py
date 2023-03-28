@@ -5,7 +5,9 @@ import torch
 from . import register_algorithm
 from utils.seq_utils import hamming_distance, random_mutation
 from flexs.utils import sequence_utils as s_utils
-
+from utils.random_mutation import single_seq_mutation
+from utils.muation_map import generate_mutation_mapping, NEGATIVE_MUTATIONS, CANDIDATE_MUTATIONS
+from utils.create_pool import AntiBertypool
 @register_algorithm("batchbo")
 class ProximalExploration: 
     """
@@ -53,7 +55,18 @@ class ProximalExploration:
         self.parent_selection_strategy = parent_selection_strategy
         self.parent_selection_proportion = parent_selection_proportion
 
-
+        map_config = "size_based"
+        if map_config == "candidate":
+            # the mutants may not affect binding affinity
+            self.mutation_map = CANDIDATE_MUTATIONS
+        elif map_config == "negative":
+            # the mutants may bring negative effect to binding affinity
+            self.mutation_map = NEGATIVE_MUTATIONS
+        elif map_config == "size_based":
+            # the mutant is similar in size to the original amino acid
+            self.mutation_map = generate_mutation_mapping()
+        else:
+            raise NotImplementedError()
 
 
 
@@ -217,14 +230,55 @@ class ProximalExploration:
 
     def _propose_sequences(self, measured_sequences,score_max):
 
-        candidate_pool = self.construct_candidate_pool(measured_sequences,mutation_times=2000,len_pool=200)
 
-    
+        measured_sequence_set = set(measured_sequences['sequence'])
+        
+        # Generate random mutations in the first round.
+        if len(measured_sequence_set)==1:
+            query_batch = []
+            while len(query_batch) < self.num_queries_per_round:
+                random_mutant = random_mutation(self.wt_sequence, self.alphabet, self.num_random_mutations)
+                if random_mutant not in measured_sequence_set:
+                    query_batch.append(random_mutant)
+                    measured_sequence_set.add(random_mutant)
+            return query_batch
+        
+        # Arrange measured sequences by the distance to the wild type.
+        measured_sequence_dict = {}
+        for _, data in measured_sequences.iterrows():
+            distance_to_wt = hamming_distance(data['sequence'], self.wt_sequence)
+            if distance_to_wt not in measured_sequence_dict.keys():
+                measured_sequence_dict[distance_to_wt] = []
+            measured_sequence_dict[distance_to_wt].append(data)
+        
+        # Highlight measured sequences near the proximal frontier.
+        frontier_neighbors, frontier_height = [], -np.inf
+        for distance_to_wt in sorted(measured_sequence_dict.keys()):
+            data_list = measured_sequence_dict[distance_to_wt]
+            data_list.sort(reverse=True, key=lambda x:x['true_score'])
+            for data in data_list[:self.frontier_neighbor_size]:
+                if data['true_score'] > frontier_height:
+                    frontier_neighbors.append(data)
+            frontier_height = max(frontier_height, data_list[0]['true_score'])
 
+        # Construct the candiate pool by randomly mutating the sequences. (line 2 of Algorithm 2 in the paper)
+        # An implementation heuristics: only mutating sequences near the proximal frontier.
+        # candidate_pool = []
+        # while len(candidate_pool) < self.num_model_queries_per_round:
+        #     # candidate_sequence = random_mutation(random.choice(frontier_neighbors)['sequence'], self.alphabet, self.num_random_mutations)
+        #     candidate_sequence = single_seq_mutation(cdr_seq=random.choice(frontier_neighbors)['sequence'],mutation_map=self.mutation_map,dropout_p=1,mutate_num=2)
+        #     if candidate_sequence not in measured_sequence_set:
+        #         candidate_pool.append(candidate_sequence)
+        #         measured_sequence_set.add(candidate_sequence)
+
+        candidate_pool = self.construct_candidate_pool(measured_sequences,mutation_times=2000,len_pool=200) ## if using genetic algorithm
+        candidate_pool = AntiBertypool(candidate_pool)
         # use exploer to fine tune the candidate pool
         new_state_string, _ = self.pick_action(
             candidate_pool, score_max
         ) 
+
+
 
         # return np.array(candidate_pool)
         return new_state_string

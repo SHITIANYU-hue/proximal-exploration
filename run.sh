@@ -1,12 +1,25 @@
 python run.py \
   --device 'cpu' \
-  --oracle_model tape \
+  --oracle_model antibody \
   --alg batchbo \
-  --name 'cnn-batchbo-q100-ucb-tape-1-AAV' \
-  --num_rounds 30 \
+  --name 'cnn-batchbo-UCBrisk-q100-antibody_seed1-anti-p80' \
+  --num_rounds 10 \
+  --task E4B \
   --net cnn \
   --ensemble_size 3 \
-  --out_dir result \
+  --out_dir resultantibody \
 
+
+
+# python run.py \
+#   --device 'cpu' \
+#   --oracle_model antibody \
+#   --alg pex \
+#   --name 'cnn-pex-q100-antibody_seed1' \
+#   --num_rounds 10 \
+#   --task E4B \
+#   --net cnn \
+#   --ensemble_size 3 \
+#   --out_dir resultantibody \
 
 

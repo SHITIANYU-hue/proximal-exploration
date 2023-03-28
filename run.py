@@ -25,7 +25,7 @@ def get_args():
     parser.add_argument('--alg', help='exploration algorithm', type=str, default='pex', choices=algorithm_collection.keys())
     parser.add_argument('--num_rounds', help='number of query rounds', type=np.int32, default=30)
     parser.add_argument('--num_queries_per_round', help='number of black-box queries per round', type=np.int32, default=100)
-    parser.add_argument('--num_model_queries_per_round', help='number of model predictions per round', type=np.int32, default=2000)
+    parser.add_argument('--num_model_queries_per_round', help='number of model predictions per round', type=np.int32, default=100)
     
     # model arguments
     parser.add_argument('--net', help='surrogate model architecture', type=str, default='esm1b', choices=model_collection.keys())
@@ -39,10 +39,11 @@ def get_args():
     
     # PEX arguments
     parser.add_argument('--num_random_mutations', help='number of amino acids to mutate per sequence', type=np.int32, default=2)
+
     parser.add_argument('--frontier_neighbor_size', help='size of the frontier neighbor', type=np.int32, default=5)
     
     # MuFacNet arguments
-    if args.net == 'mufacnet':
+    if args.net == 'mufacnet' or 'GPmufacnet':
         parser.add_argument('--latent_dim', help='dimension of latent mutation embedding', type=np.int32, default=32)
         parser.add_argument('--context_radius', help='the radius of context window', type=np.int32, default=10)
 

@@ -1,0 +1,9 @@
+train: False
+test: False
+predict: True
+accelerator: "gpu"
+devices: 1
+strategy: "ddp"
+output_dir: 
+seed: 42
+name: inference_non_specificity # name of this training task
