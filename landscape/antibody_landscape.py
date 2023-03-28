@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader
 from pytorch_lightning import LightningDataModule, LightningModule, Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 import json
-import tape
 
 env_path = '%s/' % os.path.dirname(os.path.abspath(__file__))
 sys.path.append(env_path)
