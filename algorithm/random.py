@@ -61,11 +61,9 @@ class Random(flexs.Explorer):
         self.model_queries_per_batch=args.num_model_queries_per_round
         self.sequences_batch_size=args.batch_size
         self.rounds=args.num_queries_per_round
-        self.data_range=args.datasetrange
+
     
-    def propose_sequences(
-        self, measured_sequences: pd.DataFrame
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def propose_sequences(self, measured_sequences,score_max):
         """Propose top `sequences_batch_size` sequences for evaluation."""
         old_sequences = measured_sequences["sequence"]
         old_sequence_set = set(old_sequences)
@@ -77,7 +75,7 @@ class Random(flexs.Explorer):
                 seq, self.mu / len(seq), alphabet=self.alphabet
             )
 
-            if new_seq not in old_sequence_set and int(new_seq,2)<self.data_range:
+            if new_seq not in old_sequence_set:
 
                 new_seqs.add(new_seq)
 
