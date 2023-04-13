@@ -34,7 +34,7 @@ class Runner:
         seed_everything(runs)
         self.results = pd.DataFrame()
         starting_fitness = landscape.get_fitness([starting_sequence])[0]
-        _, _, _, _, _ ,_= self.update_results(0, [starting_sequence], [starting_fitness], 0)
+        roundss, score_max, score_max_this_round, rt, mutcounts, searched_seq = self.update_results(0, [starting_sequence], [starting_fitness], 0)
         rounds_ = []
         score_maxs = []
         mutation: list[int] = []
@@ -67,9 +67,7 @@ class Runner:
 
             round_running_time = time.time() - round_start_time
             round_min_seq = sequences[np.argmin(round_mutation)]
-            roundss, score_max, score_max_this_round, rt, mutcounts, searched_seq = self.update_results(
-                round, sequences, true_scores, np.average(mutation), round_running_time
-            )
+
             # wandb.log({"mutations": mutcounts, "best_score": score_max, "score_max_this_round":score_max_this_round, "round": round})
             mutation_counts.append(mutcounts)
             rounds_.append(roundss)
@@ -77,6 +75,11 @@ class Runner:
             rts.append(rt)
             searched_seq_.append(searched_seq)
             score_max_this_round_.append(score_max_this_round)
+
+            roundss, score_max, score_max_this_round, rt, mutcounts, searched_seq = self.update_results(
+                round, sequences, true_scores, np.average(mutation), round_running_time
+            )
+
             result = pd.DataFrame(
                 {
                     "round": rounds_,
