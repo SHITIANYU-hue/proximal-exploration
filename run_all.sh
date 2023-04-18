@@ -2,7 +2,7 @@
 
 # Define the list of fitness data, exploration algorithms, and seeds to loop over
 # EXPLORATION_ALGORITHMS=("batchbo" "random" "pex" "antbobatch")
-EXPLORATION_ALGORITHMS=("random" "pex" "batchbo")
+EXPLORATION_ALGORITHMS=("batchbo" "random" "pex")
 
 SEEDS=(1 2 3)
 
@@ -17,7 +17,7 @@ do
             --device 'cpu' \
             --oracle_model antibody \
             --alg "$ea" \
-            --name "${ea}-$seed" \
+            --name "${ea}-bsa-$seed" \
             --num_rounds 10 \
             --net cnn \
             --ensemble_size 3 \
