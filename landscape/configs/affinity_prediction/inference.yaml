@@ -37,7 +37,7 @@ checkpoint_configs:
     module_name: "EnsembleInferenceBCE"
     net_configs:
       Seq32x1_16: "landscape/230324/Seq32x1_16-tgfb.pth"
-      Seq32x2_16: "landscape/230324/Seq32x2_16-tgfbv.pth"
+      Seq32x2_16: "landscape/230324/Seq32x2_16-tgfb.pth"
       Seq64x1_16: "landscape/230324/Seq64x1_16-tgfb.pth"
       Seq_emb_32x1_16: "landscape/230324/Seq_emb_32x1_16-tgfb.pth"
       Seq32x1_16_filt3: "landscape/230324/Seq32x1_16_filt3-tgfb.pth"
