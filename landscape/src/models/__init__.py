@@ -1,11 +1,11 @@
 from src.models.counter_selection import (
-    EnsembleBinaryClassificationModel,
-    EnsembleRegressionModel,
+    EnsembleInference,
+    EnsembleInferenceBCE,
 )
 
 module_collection = {
-    "EnsembleBinaryClassificationModel": EnsembleBinaryClassificationModel,
-    "EnsembleRegressionModel": EnsembleRegressionModel,
+    "EnsembleInference": EnsembleInference,
+    "EnsembleInferenceBCE": EnsembleInferenceBCE,
 }
 
 

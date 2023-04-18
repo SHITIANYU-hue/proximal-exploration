@@ -6,5 +6,39 @@ devices: 1
 strategy: "ddp"
 batch_size: 1024
 num_workers: 4
-module_name: "EnsembleRegressionModel"
-ckpt_for_predict: /home/changquan/code/proximal-exploration-active-learning/oracle/epoch=1200_coe=0.55.ckpt
+module_name: "EnsembleInference"
+checkpoint: "bsa" # choice [phage_display, bsa, bf, tgfb]
+
+
+
+# if use phage_dispaly checkpoint, you must set module_name=EnsembleInference
+# if use bsa\bv\tgfb checkpoint, you must set module_name=EnsembleInferenceBCE
+
+checkpoint_configs: 
+  bsa: 
+    module_name: "EnsembleInferenceBCE"
+    net_configs:
+      Seq32x1_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq32x1_16-bsa.pth"
+      Seq32x2_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq32x2_16-bsa.pth"
+      Seq64x1_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq64x1_16-bsa.pth"
+      Seq_emb_32x1_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq_emb_32x1_16-bsa.pth"
+      Seq32x1_16_filt3: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq32x1_16_filt3-bsa.pth"
+      Seq_32_32: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq_32_32-bsa.pth"
+  bv:
+    module_name: "EnsembleInferenceBCE"
+    net_configs:
+      Seq32x1_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq32x1_16-bv.pth"
+      Seq32x2_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq32x2_16-bv.pth"
+      Seq64x1_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq64x1_16-bv.pth"
+      Seq_emb_32x1_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq_emb_32x1_16-bv.pth"
+      Seq32x1_16_filt3: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq32x1_16_filt3-bv.pth"
+      Seq_32_32: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq_32_32-bv.pth"
+  tgfb:
+    module_name: "EnsembleInferenceBCE"
+    net_configs:
+      Seq32x1_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq32x1_16-tgfb.pth"
+      Seq32x2_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq32x2_16-tgfbv.pth"
+      Seq64x1_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq64x1_16-tgfb.pth"
+      Seq_emb_32x1_16: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq_emb_32x1_16-tgfb.pth"
+      Seq32x1_16_filt3: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq32x1_16_filt3-tgfb.pth"
+      Seq_32_32: "/home/tianyu/code/proximal-exploration/landscape/230324/Seq_32_32-tgfb.pth"

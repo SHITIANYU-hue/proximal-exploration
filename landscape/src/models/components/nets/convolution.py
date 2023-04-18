@@ -18,7 +18,7 @@ class Seq32x1_16(nn.Module):
         
         #40 = 80/2 * math.ceil(math.ceil(self.length/2)/2)
         self.fc1 = nn.Linear(640,16)
-        self.fc2 = nn.Linear(16, 1)
+        self.fc2 = nn.Linear(16, self.output_dim)
         self.dropout = torch.nn.Dropout(0.5)
 
     def forward(self, x):
@@ -26,6 +26,7 @@ class Seq32x1_16(nn.Module):
         x = self.flatten(x)
         #x = x.view(-1, 64 * math.ceil(math.ceil(20/2)/2))
         x = self.dropout(F.relu(self.fc1(x)))
+        x = self.fc2(x)
         return x
 
 class Seq32x2_16(nn.Module):
@@ -74,6 +75,7 @@ class Seq64x1_16(nn.Module):
 
         #x = x.view(-1, 64 * math.ceil(math.ceil(20/2)/2))
         x = self.dropout(F.relu(self.fc1(x)))
+        x = self.fc2(x)
         return x
 
 class Seq_emb_32x1_16(nn.Module):
@@ -97,6 +99,7 @@ class Seq_emb_32x1_16(nn.Module):
         x = self.flatten(x)
         #x = x.view(-1, 64 * math.ceil(math.ceil(20/2)/2))
         x = self.dropout(F.relu(self.fc1(x)))
+        x = self.fc2(x)
         return x
 
 class Seq32x1_16_filt3(nn.Module):
@@ -116,16 +119,6 @@ class Seq32x1_16_filt3(nn.Module):
         x = self.flatten(x)
         #x = x.view(-1, 64 * math.ceil(math.ceil(20/2)/2))
         x = self.dropout(F.relu(self.fc1(x)))
+        x = self.fc2(x)
         return x
     
-
-class WeightClipper(object):
-    def __init__(self, frequency=5):
-        self.frequency = frequency
-
-    def __call__(self, module):
-        # filter the variables to get the ones you want
-        if hasattr(module, 'weight'):
-            w = module.weight.data
-            w = w.clamp(-3,3)
-            module.weight.data = w

@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
-from functools import cache
+# from functools import cache
 from Levenshtein import distance
 
 def hamming_distance(seq_1, seq_2, config=None): #config: list, e.g. [2, 3, 4, 5] -- denotes there are 4 categorical variables, with numbers of categories
@@ -87,7 +87,7 @@ def random_mutation(sequence, alphabet, num_mutations):
     new_seq = ''.join(wt_seq)
     return new_seq
 
-@cache
+# @cache
 def levenshtein_distance(s1, s2):
     return distance(s1, s2)
 

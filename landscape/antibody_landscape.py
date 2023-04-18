@@ -49,14 +49,15 @@ class antiberty_lanescape:
         with open(os.path.join(env_path, "configs/starting_sequence.json"),'r') as f:
             self.starting_sequence = json.load(f)
         self.device = args.device
-        self.model = get_module(cfg["module_name"])()
+        model_config = cfg["checkpoint_configs"][cfg["checkpoint"]]
+        model = get_module(model_config["module_name"])(net_configs=model_config["net_configs"])
+        self.model = model
     def get_fitness(self, cdr3_sequences):
         fitness_scores=[]
         self.model.eval()
         for seq in cdr3_sequences:
-            print('seq',seq)
             self.dataloader.dataset.update_data([seq])
-            prediction = self.inferencer.predict(self.model, self.dataloader, ckpt_path=cfg["ckpt_for_predict"])
+            prediction = self.inferencer.predict(self.model, self.dataloader)
             prediction = -1*prediction[0]['preds'].item()
             fitness_scores.append(prediction)
         return fitness_scores
