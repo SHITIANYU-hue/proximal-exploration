@@ -29,7 +29,7 @@ checkpoint_configs:
     net_configs:
       Seq32x1_16: "landscape/230324/Seq32x1_16-bv.pth"
       Seq32x2_16: "landscape/230324/Seq32x2_16-bv.pth"
-      Seq64x1_16: "landscape/230324/eq64x1_16-bv.pth"
+      Seq64x1_16: "landscape/230324/Seq64x1_16-bv.pth"
       Seq_emb_32x1_16: "landscape/230324/Seq_emb_32x1_16-bv.pth"
       Seq32x1_16_filt3: "landscape/230324/Seq32x1_16_filt3-bv.pth"
       Seq_32_32: "landscape/230324/Seq_32_32-bv.pth"
