@@ -58,6 +58,6 @@ class antiberty_lanescape:
         for seq in cdr3_sequences:
             self.dataloader.dataset.update_data([seq])
             prediction = self.inferencer.predict(self.model, self.dataloader)
-            prediction = -1*prediction[0]['preds'].item()
+            prediction = 1*prediction[0]['preds'].item()
             fitness_scores.append(prediction)
         return fitness_scores
