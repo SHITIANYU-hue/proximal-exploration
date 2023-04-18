@@ -36,7 +36,7 @@ class antiberty_lanescape:
                 dataset=CDRH3DataPred(samples=[]),
                 batch_size=cfg["batch_size"],
                 num_workers=cfg["num_workers"],
-                pin_memory=True,
+                pin_memory=False,  ## disable cuda usage
                 drop_last=False,
                 shuffle=False,
             )
@@ -46,8 +46,12 @@ class antiberty_lanescape:
             devices=cfg["devices"], 
             logger=False
             )
-        with open(os.path.join(env_path, "configs/starting_sequence.json"),'r') as f:
-            self.starting_sequence = json.load(f)
+        if cfg['checkpoint'] == 'bsa':
+            self.starting_sequence = 'ELQGWLRYWQHGQLDY'
+        if cfg['checkpoint'] == 'bv':
+            self.starting_sequence = 'VVDRRSSSYFDY'
+        if cfg['checkpoint'] == 'tgfb':
+            self.starting_sequence = 'WGGYSRVFYFEAPFDY'  
         self.device = args.device
         model_config = cfg["checkpoint_configs"][cfg["checkpoint"]]
         model = get_module(model_config["module_name"])(net_configs=model_config["net_configs"])
