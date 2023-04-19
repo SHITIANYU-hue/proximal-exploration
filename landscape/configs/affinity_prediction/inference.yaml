@@ -7,7 +7,7 @@ strategy: "ddp"
 batch_size: 1024
 num_workers: 4
 module_name: "EnsembleInference"
-checkpoint: "bsa" # choice [phage_display, bsa, bf, tgfb]
+checkpoint: "tgfb" # choice [phage_display, bsa, bv, tgfb]
 
 
 
@@ -42,3 +42,13 @@ checkpoint_configs:
       Seq_emb_32x1_16: "landscape/230324/Seq_emb_32x1_16-tgfb.pth"
       Seq32x1_16_filt3: "landscape/230324/Seq32x1_16_filt3-tgfb.pth"
       Seq_32_32: "landscape/230324/Seq_32_32-tgfb.pth"
+  phage_display:
+    module_name: "EnsembleInference"
+    net_configs:
+      Seq32x1_16: "landscape/230418/Seq32x1_16-phage_display.pth"
+      Seq32x2_16: "landscape/230418/Seq32x2_16-phage_display.pth"
+      Seq64x1_16: "landscape/230418/Seq64x1_16-phage_display.pth"
+      Seq_emb_32x1_16: "landscape/230418/Seq_emb_32x1_16-phage_display.pth"
+      Seq32x1_16_filt3: "landscape/230418/Seq32x1_16_filt3-phage_display.pth"
+      Seq_32_32: "landscape/230418/Seq_32_32-phage_display.pth"
+
