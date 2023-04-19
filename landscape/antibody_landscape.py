@@ -52,6 +52,9 @@ class antiberty_lanescape:
             self.starting_sequence = 'VVDRRSSSYFDY'
         if cfg['checkpoint'] == 'tgfb':
             self.starting_sequence = 'WGGYSRVFYFEAPFDY'  
+        if cfg['checkpoint'] == 'phage_display':
+            self.starting_sequence= 'GDGPWRVWRSAFDY'
+            
         self.device = args.device
         model_config = cfg["checkpoint_configs"][cfg["checkpoint"]]
         model = get_module(model_config["module_name"])(net_configs=model_config["net_configs"])
