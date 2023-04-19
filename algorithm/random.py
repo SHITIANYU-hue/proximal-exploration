@@ -22,7 +22,7 @@ class Random(flexs.Explorer):
     def __init__(
         self,
         args,
-        model: flexs.Model,
+        model,
         # model,
         alphabet: str,
         starting_sequence: str,
@@ -81,7 +81,8 @@ class Random(flexs.Explorer):
 
         new_seqs = np.array(list(new_seqs))
         preds = self.model.get_fitness(new_seqs)
-
+        uncertainty_pred=self.model.get_uncertainty(new_seqs)
+        # print('risk',np.mean(uncertainty_pred))
         if self.elitist:
             idxs = np.argsort(preds)[: -self.sequences_batch_size : -1]
         else:
