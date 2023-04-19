@@ -24,9 +24,10 @@ def get_args():
     # algorithm arguments
     parser.add_argument('--alg', help='exploration algorithm', type=str, default='pex', choices=algorithm_collection.keys())
     parser.add_argument('--num_rounds', help='number of query rounds', type=np.int32, default=30)
-    parser.add_argument('--num_queries_per_round', help='number of black-box queries per round', type=np.int32, default=100)
+    parser.add_argument('--num_queries_per_round', help='number of black-box queries per round', type=np.int32, default=10)
     parser.add_argument('--num_model_queries_per_round', help='number of model predictions per round', type=np.int32, default=100)
-    
+    parser.add_argument('--useplm', type=bool, default=False, help="(default: False)")
+
     # model arguments
     parser.add_argument('--net', help='surrogate model architecture', type=str, default='esm1b', choices=model_collection.keys())
     parser.add_argument('--lr', help='learning rate', type=np.float32, default=1e-3)
