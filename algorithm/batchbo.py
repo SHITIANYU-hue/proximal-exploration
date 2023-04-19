@@ -30,6 +30,7 @@ class ProximalExploration:
         self.population_size = 20
         self.children_proportion = 0.2
         self.eps=0.9
+        self.useplm=args.useplm
         self.model_queries_per_batch=args.num_model_queries_per_round
 
         ## mutation config
@@ -98,7 +99,7 @@ class ProximalExploration:
         max_pred = max(ensemble_preds)
         mean_pred = np.mean(self.model.get_fitness(candidate_pool))
         std_pre = np.std(self.model.get_fitness(candidate_pool))
-        risk=np.mean(std_pre)
+        risk=np.mean(uncertainty_pred)
         best_fitness_obs = score_max ## this is the best fitness observed from last round
         best_fitness = best_fitness_obs
         if self.method == "EI":
@@ -272,7 +273,8 @@ class ProximalExploration:
         #         measured_sequence_set.add(candidate_sequence)
 
         candidate_pool = self.construct_candidate_pool(measured_sequences,mutation_times=2000,len_pool=200) ## if using genetic algorithm
-        candidate_pool = AntiBertypool(candidate_pool)
+        if self.useplm:
+            candidate_pool = AntiBertypool(candidate_pool)
         # use exploer to fine tune the candidate pool
         new_state_string, _ = self.pick_action(
             candidate_pool, score_max
