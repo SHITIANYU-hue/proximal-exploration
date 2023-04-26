@@ -3,7 +3,7 @@ import numpy as np
 from scipy.stats import norm
 import torch
 from . import register_algorithm
-from utils.seq_utils import hamming_distance, random_mutation
+from utils.seq_utils import hamming_distance, random_mutation,generate_mutations
 from flexs.utils import sequence_utils as s_utils
 from utils.random_mutation import single_seq_mutation
 from utils.muation_map import generate_mutation_mapping, NEGATIVE_MUTATIONS, CANDIDATE_MUTATIONS
@@ -172,6 +172,22 @@ class ProximalExploration:
         probs = torch.Tensor(fitnesses / np.sum(fitnesses))
         return torch.multinomial(probs, num_parents, replacement=True).numpy()
 
+    def construct_exhaust_candidate_pool(self,measured_sequences):
+        measured_sequence_set = set(measured_sequences["sequence"])
+        all_generated_mutations_set = set()
+        all_generated_mutations = []
+
+        for seq in measured_sequence_set:
+            seq_mutations = generate_mutations(seq, n_mutations=2, mutation_options='ACDEFGHIKLMNPQRSTVWY')
+            new_mutations = [mut for mut in seq_mutations if (mut not in all_generated_mutations_set and mut not in measured_sequence_set)]
+            all_generated_mutations.extend(new_mutations)
+            all_generated_mutations_set.update(new_mutations)
+
+        return list(all_generated_mutations_set)
+        
+
+
+
     def construct_candidate_pool(self,measured_sequences,mutation_times,len_pool):
         """Propose top `sequences_batch_size` sequences for evaluation."""
         # Set the torch seed by generating a random integer from the pre-seeded self.rng
@@ -273,11 +289,14 @@ class ProximalExploration:
         #         measured_sequence_set.add(candidate_sequence)
 
         candidate_pool = self.construct_candidate_pool(measured_sequences,mutation_times=2000,len_pool=200) ## if using genetic algorithm
+
+        candidate_pool2 = self.construct_exhaust_candidate_pool(measured_sequences) ## if using exhaustive search algorithm
+
         if self.useplm:
             candidate_pool = AntiBertypool(candidate_pool)
         # use exploer to fine tune the candidate pool
         new_state_string, _ = self.pick_action(
-            candidate_pool, score_max
+            candidate_pool2, score_max
         ) 
 
 

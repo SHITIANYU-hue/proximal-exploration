@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import numpy as np
 # from functools import cache
 from Levenshtein import distance
+import itertools
 
 def hamming_distance(seq_1, seq_2, config=None): #config: list, e.g. [2, 3, 4, 5] -- denotes there are 4 categorical variables, with numbers of categories
                                                  # being 2, 3, 4, and 5 respectively.
@@ -43,6 +44,29 @@ def levenshteinDistance(s1_, s2_,name):
                     distances_.append(1 + min((distances[i1], distances[i1 + 1], distances_[-1])))
             distances = distances_
         return distances[-1]
+
+def generate_mutations(seq, n_mutations=2, mutation_options='ACDEFGHIKLMNPQRSTVWY'):
+    """
+    Generate all possible combinations of n_mutations mutations on the input sequence,
+    where each mutation site can take any value in mutation_options.
+    
+    Args:
+        seq (str): Input sequence.
+        n_mutations (int): Number of mutation sites.
+        mutation_options (list): List of possible mutation options for each site.
+    
+    Returns:
+        list: List of all possible mutated sequences.
+    """
+    all_mutations = []
+    for indices in itertools.combinations(range(len(seq)), n_mutations):
+        for substitutions in itertools.product(mutation_options, repeat=n_mutations):
+            mutation = list(seq)
+            for i, s in zip(indices, substitutions):
+                mutation[i] = s
+            all_mutations.append("".join(mutation))
+    return all_mutations
+
 
 def levenshteinDistance_(s1_, seq_batch, s2_,name):
     id1=int(s1_,2)
